@@ -3,14 +3,26 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
 def convert_to_degrees(value):
-    """Converte coordenadas EXIF para formato decimal."""
-    d, m, s = value
-    return d + (m / 60.0) + (s / 3600.0)
+    """Converte coordenadas EXIF para formato decimal com verificação de erro."""
+    try:
+        d, m, s = value
+
+        # Se qualquer um dos valores for None ou 0, retorna None para evitar erro
+        if d is None or m is None or s is None or s == 0:
+            return None
+
+        return float(d) + (float(m) / 60.0) + (float(s) / 3600.0)
+    except (TypeError, ValueError, ZeroDivisionError) as e:
+        print(f"Erro ao converter coordenadas GPS: {e}")
+        return None
 
 def get_address_from_coordinates(lat, lon):
     """Obtém o nome da rua a partir das coordenadas GPS."""
+    if lat is None or lon is None:
+        return "Erro: Coordenadas GPS inválidas."
+    
     try:
-        geolocator = Nominatim(user_agent="Vish/1.0 (lukascsouza1@gmail.com)")
+        geolocator = Nominatim(user_agent="ReclamaCidadeApp/1.0 (lukascsouza1@gmail.com)")
         location = geolocator.reverse((lat, lon), exactly_one=True)
         return location.address if location else "Endereço não encontrado"
     except Exception as e:
@@ -38,15 +50,12 @@ def get_gps_location(image_path):
     if "GPSLatitude" in gps_info and "GPSLongitude" in gps_info:
         lat = convert_to_degrees(gps_info["GPSLatitude"])
         lon = convert_to_degrees(gps_info["GPSLongitude"])
-        
-        if gps_info.get("GPSLatitudeRef", "N") != "N":
-            lat = -lat
-        if gps_info.get("GPSLongitudeRef", "E") != "E":
-            lon = -lon
-        
+
+        if lat is None or lon is None:
+            return "Erro: Dados de GPS inválidos ou ausentes na imagem."
+
         address = get_address_from_coordinates(lat, lon)
         
-        # Organizar melhor a saída
         output = (
             f"\n🗺️ **Informações da Imagem**\n"
             f"------------------------------\n"
@@ -59,8 +68,8 @@ def get_gps_location(image_path):
     else:
         return "Nenhuma informação de GPS encontrada."
 
-# Caminho da imagem enviada (corrigido para evitar erro no Windows)
-image_path = r"C:\Users\202309057981\Documents\teste\20250310_085301.jpg"  # Substitua pelo nome real da imagem
+# Caminho da imagem enviada
+image_path = r"C:\Users\202309057981\Vish_v1-1\teste_2.jpg"
 
 # Verificar metadados da imagem
 print(get_gps_location(image_path))

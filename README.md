@@ -1,4 +1,4 @@
-# 📌 VISH: Extração de Localização a partir de Imagens usando pillow 
+# 📌 VISH: Extração de Localização a partir de Imagens usando Pillow e Geopy
 
 Este projeto permite extrair **coordenadas GPS (latitude e longitude)** de imagens que contenham metadados EXIF e obter o **endereço** correspondente a partir das coordenadas.
 
